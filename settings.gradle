@@ -1,0 +1,5 @@
+include 'security-oauth2-client-mock'
+include 'security-oauth2-client-password'
+
+rootProject.name = "${projectName}"
+

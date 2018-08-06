@@ -14,6 +14,7 @@ public class MockTokenEndpointResourceServerConfigurer extends ResourceServerCon
     private FrameworkEndpointHandlerMapping handlerMapping;
     private Integer order;
     private String access;
+    private String resourceId;
 
     public void setHandlerMapping(FrameworkEndpointHandlerMapping handlerMapping) {
         this.handlerMapping = handlerMapping;
@@ -27,9 +28,13 @@ public class MockTokenEndpointResourceServerConfigurer extends ResourceServerCon
         this.access = access;
     }
 
+    public void setResourceId(String resourceId) {
+        this.resourceId = resourceId;
+    }
+
     @Override
     public void configure(ResourceServerSecurityConfigurer resources) {
-
+        resources.resourceId(resourceId);
     }
 
     @Override

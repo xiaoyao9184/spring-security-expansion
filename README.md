@@ -1,5 +1,7 @@
 # spring-security-expansion
 
+[![](https://jitpack.io/v/xiaoyao9184/spring-security-expansion.svg)](https://jitpack.io/#xiaoyao9184/spring-security-expansion)
+
 XY's spring security expansion
 
 

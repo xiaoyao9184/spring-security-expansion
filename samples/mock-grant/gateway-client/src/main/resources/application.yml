@@ -1,0 +1,27 @@
+debug: true
+
+server:
+  port: 8082
+
+security:
+  oauth2:
+    client:
+      access-token-uri: http://localhost:8081/oauth/token
+      client-id: mock
+      client-secret: mock
+#      grant-type: client_credentials
+    resource:
+      tokenInfoUri: http://localhost:8081/oauth/check_token
+#      user-info-uri: http://localhost:8081/user
+
+zuul:
+  routes:
+    auth:
+      path: /auth/**
+      url: http://localhost:8081
+
+logging:
+  level:
+#    ROOT: DEBUG
+    org.springframework: DEBUG
+    org.springframework.security: DEBUG

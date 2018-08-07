@@ -1,0 +1,15 @@
+debug: true
+
+server:
+  port: 8081
+
+security:
+  oauth2:
+    resource:
+      id: "mock/resource"
+
+logging:
+  level:
+#    ROOT: DEBUG
+    org.springframework: DEBUG
+    org.springframework.security: DEBUG

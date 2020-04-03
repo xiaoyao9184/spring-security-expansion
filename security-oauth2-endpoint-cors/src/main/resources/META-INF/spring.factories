@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.xy.spring.security.oauth2.endpoint.cors.AuthorizationServerSecurityConfigurationCorsSupport

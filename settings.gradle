@@ -1,5 +1,6 @@
 include 'security-oauth2-client-mock'
 include 'security-oauth2-client-password'
+include 'security-oauth2-endpoint-cors'
 include 'sample-mock-auth-server'
 include 'sample-mock-gateway-client'
 include 'sample-password-auth-server'

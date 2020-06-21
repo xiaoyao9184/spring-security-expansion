@@ -1,14 +1,17 @@
 include 'security-oauth2-client-mock'
 include 'security-oauth2-client-password'
+include 'security-oauth2-client-authentication'
 include 'security-oauth2-endpoint-cors'
 include 'sample-mock-auth-server'
 include 'sample-mock-gateway-client'
 include 'sample-password-auth-server'
 include 'sample-password-gateway-client'
+include 'sample-client-authentication'
 
 rootProject.name = "${projectName}"
 project(":sample-mock-auth-server").projectDir = new File("samples/mock-grant/auth-server")
 project(":sample-mock-gateway-client").projectDir = new File("samples/mock-grant/gateway-client")
 project(":sample-password-auth-server").projectDir = new File("samples/client-password/auth-server")
 project(":sample-password-gateway-client").projectDir = new File("samples/client-password/gateway-client")
+project(":sample-client-authentication").projectDir = new File("samples/client-authentication/multi-client")
 

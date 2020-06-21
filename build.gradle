@@ -21,11 +21,19 @@ buildscript {
     }
 }
 
+plugins {
+//    id 'spring-boot-gradle-plugin' version '2.3.0.RELEASE' apply false
+    id 'org.springframework.boot' version '2.3.0.RELEASE' apply false
+}
+
+
+
 allprojects {
     apply plugin: 'java'
     apply plugin: 'idea'
 
     repositories {
+        mavenLocal()
         mavenCentral()
         jcenter()
         maven{
@@ -133,6 +141,34 @@ project(':security-oauth2-client-password') {
             force "com.fasterxml.jackson.core:jackson-core:2.8.10"
             force "com.fasterxml.jackson.core:jackson-annotations:2.8.0"
         }
+    }
+
+}
+
+project(':security-oauth2-client-authentication') {
+    group = 'com.github.xiaoyao9184'
+    version = "0.1-SNAPSHOT"
+
+    description = "client password in spring security oauth2"
+
+    apply plugin: 'java'
+    apply plugin: 'war'
+    apply plugin: 'com.github.ksoichiro.build.info'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    dependencies {
+        compile group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: "2.3.0.RELEASE"
+        compile group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-client', version: "2.3.0.RELEASE"
+
+        providedCompile group: 'javax.servlet', name: 'javax.servlet-api', version: '4.0.1'
+
+
+        //Test
+        testCompile group: 'junit', name: 'junit', version: '4.12'
+        testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: "2.3.0.RELEASE"
+
     }
 
 }

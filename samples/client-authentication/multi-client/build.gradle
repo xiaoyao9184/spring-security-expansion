@@ -1,8 +1,17 @@
-plugins {
-    id 'org.springframework.boot'
+buildscript {
+    ext {
+        springCloudVersion = 'Hoxton.SR5'
+        springBootVersion = '2.3.0.RELEASE'
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+    }
 }
+
 apply plugin: 'java'
-apply plugin: 'maven'
 apply plugin: "io.spring.dependency-management"
 
 group = 'com.github.xiaoyao9184'
@@ -13,26 +22,18 @@ targetCompatibility = 1.8
 
 dependencyManagement {
     imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:Hoxton.SR5"
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
     }
 }
 
 dependencies {
-    runtime 'org.springframework.boot:spring-boot-devtools:2.3.0.RELEASE'
-
-    //Cloud
-    //TODO use plugin with version ?
-//    compile 'org.springframework.cloud:spring-cloud-starter-zuul'
-    //TODO
-//    compile 'org.springframework.cloud:spring-cloud-starter-oauth2'
-    //SecurityOAuth
-    compile "org.springframework.security.oauth:spring-security-oauth2:2.5.0.RELEASE"
     //Boot
-    compile 'org.springframework.boot:spring-boot-starter-web:2.3.0.RELEASE'
-    compile 'org.springframework.boot:spring-boot-starter-security:2.3.0.RELEASE'
+    runtime "org.springframework.boot:spring-boot-devtools:${springBootVersion}"
+    compile "org.springframework.boot:spring-boot-starter-web:${springBootVersion}"
+    compile "org.springframework.boot:spring-boot-starter-security:${springBootVersion}"
 
     //Core
     compile(project(':security-oauth2-client-authentication'))
 
-    testCompile 'org.springframework.boot:spring-boot-starter-test:2.3.0.RELEASE'
+    testCompile "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
 }

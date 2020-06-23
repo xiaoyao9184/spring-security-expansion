@@ -13,15 +13,14 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.client.web.AuthenticatedPrincipalOAuth2AuthorizedClientRepository;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
-import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.util.Assert;
-import org.springframework.util.MultiValueMap;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -33,15 +32,24 @@ import java.util.Collections;
  */
 public class OAuth2ClientAuthorizedAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
     /**
+     * The default {@code URI} where this {@code Filter} resolve client registration requests.
+     */
+    public static final String DEFAULT_RESOLVER_PROCESSES_URI = "/login/oauth2/client";
+    /**
      * The default {@code URI} where this {@code Filter} processes authentication requests.
      */
-    public static final String DEFAULT_FILTER_PROCESSES_URI = "/login/oauth2/client/*";
-    public static final String DEFAULT_RESOLVER_PROCESSES_URI = "/login/oauth2/client";
+    public static final String DEFAULT_FILTER_PROCESSES_URI = DEFAULT_RESOLVER_PROCESSES_URI + "/*";
+    public static final String REGISTRATION_ID_URI_VARIABLE_NAME = "registrationId";
     private static final String CLIENT_REGISTRATION_NOT_FOUND_ERROR_CODE = "client_registration_not_found";
 
     private OAuth2ClientAuthorizedResolver oAuth2ClientAuthorizedResolver;
     private OAuth2UserService<OAuth2UserRequest, OAuth2User> userService;
     private GrantedAuthoritiesMapper authoritiesMapper = (authorities -> authorities);
+
+    private OAuth2ErrorRefererRequestMatcher oAuth2ErrorRefererRequestMatcher = new OAuth2ErrorRefererRequestMatcher(
+            OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI
+                    + "/{" + REGISTRATION_ID_URI_VARIABLE_NAME + "}");
+    private OAuth2ErrorResolver oAuth2ErrorResolver = new OAuth2ErrorResolver();
 
     /**
      * Constructs an {@code OAuth2LoginAuthenticationFilter} using the provided parameters.
@@ -88,23 +96,25 @@ public class OAuth2ClientAuthorizedAuthenticationFilter extends AbstractAuthenti
         Assert.notNull(clientRegistrationRepository, "clientRegistrationRepository cannot be null");
         Assert.notNull(authorizedClientRepository, "authorizedClientRepository cannot be null");
         Assert.notNull(userService, "userService cannot be null");
+
+        String resolverProcessesUri = DEFAULT_RESOLVER_PROCESSES_URI;
+        if(DEFAULT_FILTER_PROCESSES_URI.equals(filterProcessesUrl)){
+            resolverProcessesUri = DEFAULT_RESOLVER_PROCESSES_URI;
+        }else{
+            resolverProcessesUri = filterProcessesUrl.replace("/*","");
+        }
         this.userService = userService;
         this.oAuth2ClientAuthorizedResolver = new OAuth2ClientAuthorizedResolver(
                 clientRegistrationRepository,authorizedClientRepository,
-                DEFAULT_RESOLVER_PROCESSES_URI);
+                resolverProcessesUri);
     }
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
             throws AuthenticationException {
 
-        MultiValueMap<String, String> params = OAuth2AuthorizationRequestUtils.toMultiMap(request.getParameterMap());
-        if(params.containsKey(OAuth2ParameterNames.ERROR)){
-            String error = params.getFirst(OAuth2ParameterNames.ERROR);
-            String error_description = params.getFirst(OAuth2ParameterNames.ERROR_DESCRIPTION);
-            String error_uri = params.getFirst(OAuth2ParameterNames.ERROR_URI);
-            OAuth2Error oauth2Error = new OAuth2Error(error,
-                    error_description, error_uri);
+        if(oAuth2ErrorRefererRequestMatcher.matches(request)){
+            OAuth2Error oauth2Error = oAuth2ErrorResolver.resolve(request);
             throw new OAuth2AuthenticationException(oauth2Error, oauth2Error.toString());
         }
 

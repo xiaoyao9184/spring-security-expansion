@@ -22,8 +22,7 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.security.web.authentication.DelegatingAuthenticationEntryPoint;
-import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.*;
 import org.springframework.security.web.util.matcher.*;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
@@ -31,6 +30,8 @@ import org.springframework.util.ReflectionUtils;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
+
+import static com.xy.spring.security.oauth2.client.OAuth2ClientAuthorizedAuthenticationFilter.REGISTRATION_ID_URI_VARIABLE_NAME;
 
 /**
  * Created by xiaoyao9184 on 2020/6/20.
@@ -48,7 +49,11 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
     private String loginPage;
     private String loginProcessingUrl = OAuth2ClientAuthorizedAuthenticationFilter.DEFAULT_FILTER_PROCESSES_URI;
 
-
+    private static final RequestHeaderRequestMatcher X_REQUESTED_WITH = new RequestHeaderRequestMatcher("X-Requested-With",
+            "XMLHttpRequest");
+    private static final OAuth2ErrorRefererRequestMatcher REFERER_ERROR = new OAuth2ErrorRefererRequestMatcher(
+            OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI
+                    + "/{" + REGISTRATION_ID_URI_VARIABLE_NAME + "}");
     /**
      * Sets the repository of client registrations.
      *
@@ -421,6 +426,25 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
                 super.init(http);
             }
         }
+
+
+        //default login entry point
+        RequestMatcher contentNegotiationRequestMatcher = this.getAuthenticationEntryPointMatcher(http);
+        AuthenticationEntryPoint authenticationEntryPoint = new LoginUrlAuthenticationEntryPoint(
+                this.getLoginPage() + "?error");
+        LinkedHashMap<RequestMatcher, AuthenticationEntryPoint> entryPoints = new LinkedHashMap<>();
+        entryPoints.put(REFERER_ERROR, new OAuth2Error401Or500EntryPoint());
+        entryPoints.put(X_REQUESTED_WITH, new Http403ForbiddenEntryPoint());
+        entryPoints.put(contentNegotiationRequestMatcher, authenticationEntryPoint);
+        DelegatingAuthenticationEntryPoint entryPoint = new DelegatingAuthenticationEntryPoint(entryPoints);
+        entryPoint.setDefaultEntryPoint(authenticationEntryPoint);
+
+        //use AuthenticationEntryPointFailureHandler
+        AuthenticationEntryPointFailureHandler authenticationEntryPointFailureHandler =
+                new AuthenticationEntryPointFailureHandler(entryPoint);
+        this.failureHandler(authenticationEntryPointFailureHandler);
+
+//        this.failureHandler(new SimpleUrlAuthenticationFailureHandler());
 
         //support Authentication by password grant
         OAuth2AccessTokenResponseClient<OAuth2PasswordGrantRequest> accessTokenResponseClient =

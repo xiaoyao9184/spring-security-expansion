@@ -3,6 +3,7 @@ package com.xy.spring.security.oauth2.client;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.ResolvableType;
+import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.HttpSecurityBuilder;
@@ -10,9 +11,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractAuthenticationFilterConfigurer;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
-import org.springframework.security.oauth2.client.endpoint.DefaultPasswordTokenResponseClient;
-import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
-import org.springframework.security.oauth2.client.endpoint.OAuth2PasswordGrantRequest;
+import org.springframework.security.oauth2.client.endpoint.*;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -131,10 +130,6 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
      */
     public class AuthorizationEndpointConfig {
         private String authorizationRequestBaseUri;
-        @Deprecated
-        private OAuth2AuthorizationRequestResolver authorizationRequestResolver;
-        @Deprecated
-        private AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository;
 
         private AuthorizationEndpointConfig() {
         }
@@ -148,31 +143,6 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
         public OAuth2ClientAuthorizedConfigurer.AuthorizationEndpointConfig baseUri(String authorizationRequestBaseUri) {
             Assert.hasText(authorizationRequestBaseUri, "authorizationRequestBaseUri cannot be empty");
             this.authorizationRequestBaseUri = authorizationRequestBaseUri;
-            return this;
-        }
-
-        /**
-         * Sets the resolver used for resolving {@link OAuth2AuthorizationRequest}'s.
-         *
-         * @since 5.1
-         * @param authorizationRequestResolver the resolver used for resolving {@link OAuth2AuthorizationRequest}'s
-         * @return the {@link OAuth2ClientAuthorizedConfigurer.AuthorizationEndpointConfig} for further configuration
-         */
-        public OAuth2ClientAuthorizedConfigurer.AuthorizationEndpointConfig authorizationRequestResolver(OAuth2AuthorizationRequestResolver authorizationRequestResolver) {
-            Assert.notNull(authorizationRequestResolver, "authorizationRequestResolver cannot be null");
-            this.authorizationRequestResolver = authorizationRequestResolver;
-            return this;
-        }
-
-        /**
-         * Sets the repository used for storing {@link OAuth2AuthorizationRequest}'s.
-         *
-         * @param authorizationRequestRepository the repository used for storing {@link OAuth2AuthorizationRequest}'s
-         * @return the {@link OAuth2ClientAuthorizedConfigurer.AuthorizationEndpointConfig} for further configuration
-         */
-        public OAuth2ClientAuthorizedConfigurer.AuthorizationEndpointConfig authorizationRequestRepository(AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository) {
-            Assert.notNull(authorizationRequestRepository, "authorizationRequestRepository cannot be null");
-            this.authorizationRequestRepository = authorizationRequestRepository;
             return this;
         }
 
@@ -212,8 +182,8 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
      * Configuration options for the Authorization Server's Token Endpoint.
      */
     public class TokenEndpointConfig {
-        //TODO support OAuth2ClientCredentialsGrantRequest
-        private OAuth2AccessTokenResponseClient<OAuth2PasswordGrantRequest> accessTokenResponseClient;
+        private OAuth2AccessTokenResponseClient<OAuth2PasswordGrantRequest> passwordAccessTokenResponseClient;
+        private OAuth2AccessTokenResponseClient<OAuth2ClientCredentialsGrantRequest> clientCredentialsGrantAccessTokenResponseClient;
 
         private TokenEndpointConfig() {
         }
@@ -221,14 +191,28 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
         /**
          * Sets the client used for requesting the access token credential from the Token Endpoint.
          *
-         * @param accessTokenResponseClient the client used for requesting the access token credential from the Token Endpoint
+         * @param passwordGrantAccessTokenResponseClient the client used for requesting the access token credential from the Token Endpoint
          * @return the {@link OAuth2ClientAuthorizedConfigurer.TokenEndpointConfig} for further configuration
          */
-        public OAuth2ClientAuthorizedConfigurer.TokenEndpointConfig accessTokenResponseClient(
-                OAuth2AccessTokenResponseClient<OAuth2PasswordGrantRequest> accessTokenResponseClient) {
+        public OAuth2ClientAuthorizedConfigurer.TokenEndpointConfig passwordGrantAccessTokenResponseClient(
+                OAuth2AccessTokenResponseClient<OAuth2PasswordGrantRequest> passwordGrantAccessTokenResponseClient) {
 
-            Assert.notNull(accessTokenResponseClient, "accessTokenResponseClient cannot be null");
-            this.accessTokenResponseClient = accessTokenResponseClient;
+            Assert.notNull(accessTokenResponseClient, "passwordAccessTokenResponseClient cannot be null");
+            this.passwordAccessTokenResponseClient = passwordGrantAccessTokenResponseClient;
+            return this;
+        }
+
+        /**
+         * Sets the client used for requesting the access token credential from the Token Endpoint.
+         *
+         * @param clientCredentialsGrantAccessTokenResponseClient the client used for requesting the access token credential from the Token Endpoint
+         * @return the {@link OAuth2ClientAuthorizedConfigurer.TokenEndpointConfig} for further configuration
+         */
+        public OAuth2ClientAuthorizedConfigurer.TokenEndpointConfig clientCredentialsGrantAccessTokenResponseClient(
+                OAuth2AccessTokenResponseClient<OAuth2ClientCredentialsGrantRequest> clientCredentialsGrantAccessTokenResponseClient) {
+
+            Assert.notNull(passwordAccessTokenResponseClient, "clientCredentialsGrantAccessTokenResponseClient cannot be null");
+            this.clientCredentialsGrantAccessTokenResponseClient = clientCredentialsGrantAccessTokenResponseClient;
             return this;
         }
 
@@ -320,7 +304,6 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
      */
     public class UserInfoEndpointConfig {
         private OAuth2UserService<OAuth2UserRequest, OAuth2User> userService;
-        private OAuth2UserService<OidcUserRequest, OidcUser> oidcUserService;
         private Map<String, Class<? extends OAuth2User>> customUserTypes = new HashMap<>();
 
         private UserInfoEndpointConfig() {
@@ -335,18 +318,6 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
         public OAuth2ClientAuthorizedConfigurer.UserInfoEndpointConfig userService(OAuth2UserService<OAuth2UserRequest, OAuth2User> userService) {
             Assert.notNull(userService, "userService cannot be null");
             this.userService = userService;
-            return this;
-        }
-
-        /**
-         * Sets the OpenID Connect 1.0 service used for obtaining the user attributes of the End-User from the UserInfo Endpoint.
-         *
-         * @param oidcUserService the OpenID Connect 1.0 service used for obtaining the user attributes of the End-User from the UserInfo Endpoint
-         * @return the {@link OAuth2ClientAuthorizedConfigurer.UserInfoEndpointConfig} for further configuration
-         */
-        public OAuth2ClientAuthorizedConfigurer.UserInfoEndpointConfig oidcUserService(OAuth2UserService<OidcUserRequest, OidcUser> oidcUserService) {
-            Assert.notNull(oidcUserService, "oidcUserService cannot be null");
-            this.oidcUserService = oidcUserService;
             return this;
         }
 
@@ -394,6 +365,7 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
     @Override
     public void init(B http) throws Exception {
         OAuth2UserService<OAuth2UserRequest, OAuth2User> oauth2UserService = this.getOAuth2UserService();
+
         OAuth2ClientAuthorizedAuthenticationFilter authenticationFilter =
                 new OAuth2ClientAuthorizedAuthenticationFilter(
                         OAuth2ClientAuthorizedConfigurerUtils.getClientRegistrationRepository(this.getBuilder()),
@@ -446,40 +418,42 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
 
 //        this.failureHandler(new SimpleUrlAuthenticationFailureHandler());
 
-        //support Authentication by password grant
+        //support password grant authentication by AuthenticationProvider
         OAuth2AccessTokenResponseClient<OAuth2PasswordGrantRequest> accessTokenResponseClient =
-                this.tokenEndpointConfig.accessTokenResponseClient;
+                this.tokenEndpointConfig.passwordAccessTokenResponseClient;
         if (accessTokenResponseClient == null) {
             accessTokenResponseClient = new DefaultPasswordTokenResponseClient();
         }
-        OAuth2PasswordAuthenticationProvider authorizationCodeAuthenticationProvider =
+        OAuth2PasswordAuthenticationProvider passwordAuthenticationProvider =
                 new OAuth2PasswordAuthenticationProvider(accessTokenResponseClient);
-        http.authenticationProvider(postProcess(authorizationCodeAuthenticationProvider));
+        http.authenticationProvider(postProcess(passwordAuthenticationProvider));
 
-        //TODO support client-credentials grant by AuthenticationProvider
-
+        //support client-credentials grant authentication by AuthenticationProvider
+        OAuth2AccessTokenResponseClient<OAuth2ClientCredentialsGrantRequest> clientCredentialsGrantAccessTokenResponseClient =
+                this.tokenEndpointConfig.clientCredentialsGrantAccessTokenResponseClient;
+        if (clientCredentialsGrantAccessTokenResponseClient == null) {
+            clientCredentialsGrantAccessTokenResponseClient = new DefaultClientCredentialsTokenResponseClient();
+        }
+        OAuth2ClientCredentialsAuthenticationProvider clientCredentialsAuthenticationProvider =
+                new OAuth2ClientCredentialsAuthenticationProvider(clientCredentialsGrantAccessTokenResponseClient);
+        http.authenticationProvider(postProcess(clientCredentialsAuthenticationProvider));
     }
 
     @Override
     public void configure(B http) throws Exception {
-        OAuth2PasswordGrantFilter authorizationCodeGrantFilter = createPasswordGrantFilter(http);
-        http.addFilterBefore(postProcess(authorizationCodeGrantFilter),OAuth2AuthorizationRequestRedirectFilter.class);
+        //support password grant request
+        OAuth2PasswordGrantFilter passwordGrantFilter = createPasswordGrantFilter(http);
+        http.addFilterBefore(postProcess(passwordGrantFilter),OAuth2AuthorizationRequestRedirectFilter.class);
 
-        //TODO support client-credentials grant by Filter
-
-
-
-
+        //support client-credentials grant request
+        OAuth2ClientCredentialsGrantFilter clientCredentialsGrantFilter = createClientCredentialsGrantFilter(http);
+        http.addFilterBefore(postProcess(clientCredentialsGrantFilter),OAuth2PasswordGrantFilter.class);
 
 
         OAuth2ClientAuthorizedAuthenticationFilter authenticationFilter = this.getAuthenticationFilter();
         if (this.redirectionEndpointConfig.authorizationResponseBaseUri != null) {
             authenticationFilter.setFilterProcessesUrl(this.redirectionEndpointConfig.authorizationResponseBaseUri);
         }
-//        if (this.authorizationEndpointConfig.authorizationRequestRepository != null) {
-//            authenticationFilter.setAuthorizationRequestRepository(
-//                    this.authorizationEndpointConfig.authorizationRequestRepository);
-//        }
         super.configure(http);
     }
 
@@ -506,7 +480,7 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
 
     private OAuth2PasswordGrantFilter createPasswordGrantFilter(B http) {
         AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
-        OAuth2PasswordGrantFilter authorizationCodeGrantFilter;
+        OAuth2PasswordGrantFilter passwordGrantFilter;
 
         //TODO support config DefaultOAuth2AuthorizationRequestResolver
 
@@ -516,13 +490,34 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
             authorizationRequestBaseUri = OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI;
         }
 
-        authorizationCodeGrantFilter = new OAuth2PasswordGrantFilter(
+        passwordGrantFilter = new OAuth2PasswordGrantFilter(
                 OAuth2ClientAuthorizedConfigurerUtils.getClientRegistrationRepository(http),
                 OAuth2ClientAuthorizedConfigurerUtils.getAuthorizedClientRepository(http),
                 authenticationManager,
                 authorizationRequestBaseUri);
 
-        return authorizationCodeGrantFilter;
+        return passwordGrantFilter;
+    }
+
+    private OAuth2ClientCredentialsGrantFilter createClientCredentialsGrantFilter(B http) {
+        AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
+        OAuth2ClientCredentialsGrantFilter clientCredentialsGrantFilter;
+
+        //TODO support config DefaultOAuth2AuthorizationRequestResolver
+
+        //config uri without resolver
+        String authorizationRequestBaseUri = this.authorizationEndpointConfig.authorizationRequestBaseUri;
+        if (authorizationRequestBaseUri == null) {
+            authorizationRequestBaseUri = OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI;
+        }
+
+        clientCredentialsGrantFilter = new OAuth2ClientCredentialsGrantFilter(
+                OAuth2ClientAuthorizedConfigurerUtils.getClientRegistrationRepository(http),
+                OAuth2ClientAuthorizedConfigurerUtils.getAuthorizedClientRepository(http),
+                authenticationManager,
+                authorizationRequestBaseUri);
+
+        return clientCredentialsGrantFilter;
     }
 
 
@@ -553,14 +548,18 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
         ResolvableType type = ResolvableType.forClassWithGenerics(OAuth2UserService.class, OAuth2UserRequest.class, OAuth2User.class);
         OAuth2UserService<OAuth2UserRequest, OAuth2User> bean = getBeanOrNull(type);
         if (bean == null) {
+            List<OAuth2UserService<OAuth2UserRequest, OAuth2User>> userServices = new ArrayList<>();
             if (!this.userInfoEndpointConfig.customUserTypes.isEmpty()) {
-                List<OAuth2UserService<OAuth2UserRequest, OAuth2User>> userServices = new ArrayList<>();
                 userServices.add(new CustomUserTypesOAuth2UserService(this.userInfoEndpointConfig.customUserTypes));
-                userServices.add(new DefaultOAuth2UserService());
-                return new DelegatingOAuth2UserService<>(userServices);
-            } else {
-                return new DefaultOAuth2UserService();
             }
+            ResolvableType typeEnvironment = ResolvableType.forType(Environment.class);
+            Environment environment = getBeanOrNull(typeEnvironment);
+            UAAClientOAuth2UserService clientOAuth2UserService = new UAAClientOAuth2UserService(environment);
+            userServices.add(clientOAuth2UserService);
+
+            DefaultOAuth2UserService oauth2UserService = new DefaultOAuth2UserService();
+            userServices.add(oauth2UserService);
+            return new DelegatingOAuth2UserService<>(userServices);
         }
 
         return bean;
@@ -571,7 +570,7 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
         if (context == null) {
             return null;
         }
-        String[] names =  context.getBeanNamesForType(type);
+        String[] names = context.getBeanNamesForType(type);
         if (names.length == 1) {
             return (T) context.getBean(names[0]);
         }

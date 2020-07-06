@@ -18,7 +18,6 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.security.web.util.UrlUtils;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.util.Assert;
-import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.UriComponents;
@@ -34,9 +33,9 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Created by xiaoyao9184 on 2020/6/20.
+ * Created by xiaoyao9184 on 2020/7/3.
  */
-public class OAuth2PasswordGrantFilter extends OncePerRequestFilter {
+public class OAuth2ClientCredentialsGrantFilter extends OncePerRequestFilter {
     private static final String REGISTRATION_ID_URI_VARIABLE_NAME = "registrationId";
     private static final char PATH_DELIMITER = '/';
     private final ClientRegistrationRepository clientRegistrationRepository;
@@ -48,17 +47,18 @@ public class OAuth2PasswordGrantFilter extends OncePerRequestFilter {
     private final RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
 
     /**
-     * Constructs an {@code OAuth2PasswordGrantFilter} using the provided parameters.
+     * Constructs an {@code OAuth2ClientCredentialsGrantFilter} using the provided parameters.
      *
      * @param clientRegistrationRepository the repository of client registrations
      * @param authorizedClientRepository the authorized client repository
      * @param authenticationManager the authentication manager
      * @param authorizationRequestBaseUri authorization request base URI
      */
-    public OAuth2PasswordGrantFilter(ClientRegistrationRepository clientRegistrationRepository,
-                                     OAuth2AuthorizedClientRepository authorizedClientRepository,
-                                     AuthenticationManager authenticationManager,
-                                     String authorizationRequestBaseUri) {
+    public OAuth2ClientCredentialsGrantFilter(
+            ClientRegistrationRepository clientRegistrationRepository,
+            OAuth2AuthorizedClientRepository authorizedClientRepository,
+            AuthenticationManager authenticationManager,
+            String authorizationRequestBaseUri) {
         Assert.notNull(clientRegistrationRepository, "clientRegistrationRepository cannot be null");
         Assert.notNull(authorizedClientRepository, "authorizedClientRepository cannot be null");
         Assert.notNull(authenticationManager, "authenticationManager cannot be null");
@@ -86,11 +86,7 @@ public class OAuth2PasswordGrantFilter extends OncePerRequestFilter {
         return Optional.of(request)
                 .map(this::resolveRegistrationId)
                 .map(this.clientRegistrationRepository::findByRegistrationId)
-                .filter(cr -> AuthorizationGrantType.PASSWORD.equals(cr.getAuthorizationGrantType()))
-                .filter(cr -> {
-                    MultiValueMap<String, String> params = OAuth2AuthorizationRequestUtils.toMultiMap(request.getParameterMap());
-                    return OAuth2AuthorizationRequestUtils.isPasswordRequest(params);
-                })
+                .filter(cr -> AuthorizationGrantType.CLIENT_CREDENTIALS.equals(cr.getAuthorizationGrantType()))
                 .isPresent();
     }
 
@@ -110,18 +106,14 @@ public class OAuth2PasswordGrantFilter extends OncePerRequestFilter {
 
         String redirectUriStr = expandRedirectUri(request, clientRegistration, "login");
 
-        MultiValueMap<String, String> params = OAuth2AuthorizationRequestUtils.toMultiMap(request.getParameterMap());
-        String username = OAuth2AuthorizationRequestUtils.removeUsername(params);
-        String password = OAuth2AuthorizationRequestUtils.removePassword(params);
-
-        OAuth2PasswordAuthenticationToken authenticationRequest =
-                new OAuth2PasswordAuthenticationToken(clientRegistration, username, password);
+        OAuth2ClientCredentialsAuthenticationToken authenticationRequest =
+                new OAuth2ClientCredentialsAuthenticationToken(clientRegistration);
         authenticationRequest.setDetails(this.authenticationDetailsSource.buildDetails(request));
 
-        OAuth2PasswordAuthenticationToken authenticationResult;
+        OAuth2ClientCredentialsAuthenticationToken authenticationResult;
 
         try {
-            authenticationResult = (OAuth2PasswordAuthenticationToken)
+            authenticationResult = (OAuth2ClientCredentialsAuthenticationToken)
                     this.authenticationManager.authenticate(authenticationRequest);
         } catch (OAuth2AuthorizationException ex) {
             OAuth2Error error = ex.getError();

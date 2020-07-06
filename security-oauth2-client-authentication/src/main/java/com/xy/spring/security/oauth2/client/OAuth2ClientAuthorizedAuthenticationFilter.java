@@ -129,6 +129,11 @@ public class OAuth2ClientAuthorizedAuthenticationFilter extends AbstractAuthenti
         ClientRegistration clientRegistration = client.getClientRegistration();
         OAuth2AccessToken accessToken = client.getAccessToken();
 
+        //TODO failureHandler support save Exception for show on login page when error
+
+        /**
+         * @see org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler#saveException
+         */
         OAuth2User oauth2User = this.userService.loadUser(new OAuth2UserRequest(
                 clientRegistration, accessToken, Collections.emptyMap()));
 

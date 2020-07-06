@@ -449,6 +449,9 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
         OAuth2ClientCredentialsGrantFilter clientCredentialsGrantFilter = createClientCredentialsGrantFilter(http);
         http.addFilterBefore(postProcess(clientCredentialsGrantFilter),OAuth2PasswordGrantFilter.class);
 
+        //password grant page
+        OAuth2PasswordLoginPageGeneratingFilter passwordLoginPageGeneratingFilter = createOAuth2PasswordLoginPageGeneratingFilter(http);
+        http.addFilterAfter(postProcess(passwordLoginPageGeneratingFilter),OAuth2PasswordGrantFilter.class);
 
         OAuth2ClientAuthorizedAuthenticationFilter authenticationFilter = this.getAuthenticationFilter();
         if (this.redirectionEndpointConfig.authorizationResponseBaseUri != null) {
@@ -520,6 +523,24 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
         return clientCredentialsGrantFilter;
     }
 
+    private OAuth2PasswordLoginPageGeneratingFilter createOAuth2PasswordLoginPageGeneratingFilter(B http) {
+        OAuth2PasswordLoginPageGeneratingFilter passwordLoginPageGeneratingFilter;
+
+        //TODO support config DefaultOAuth2AuthorizationRequestResolver
+
+        //config uri without resolver
+        String authorizationRequestBaseUri = this.authorizationEndpointConfig.authorizationRequestBaseUri;
+        if (authorizationRequestBaseUri == null) {
+            authorizationRequestBaseUri = OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI;
+        }
+
+        passwordLoginPageGeneratingFilter = new OAuth2PasswordLoginPageGeneratingFilter(
+                OAuth2ClientAuthorizedConfigurerUtils.getClientRegistrationRepository(http),
+                OAuth2ClientAuthorizedConfigurerUtils.getAuthorizedClientRepository(http),
+                authorizationRequestBaseUri);
+
+        return passwordLoginPageGeneratingFilter;
+    }
 
     private GrantedAuthoritiesMapper getGrantedAuthoritiesMapper() {
         GrantedAuthoritiesMapper grantedAuthoritiesMapper =

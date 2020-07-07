@@ -38,14 +38,9 @@ import java.util.*;
  * Created by xiaoyao9184 on 2020/7/5.
  */
 public class OAuth2ImplicitGrantFilter extends OncePerRequestFilter {
-    private static final String REGISTRATION_ID_URI_VARIABLE_NAME = "registrationId";
-    private static final char PATH_DELIMITER = '/';
     private final ClientRegistrationRepository clientRegistrationRepository;
     private final OAuth2AuthorizedClientRepository authorizedClientRepository;
     private final AuthenticationManager authenticationManager;
-    private AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository =
-            new HttpSessionOAuth2AuthorizationRequestRepository();
-    private final AntPathRequestMatcher authorizationRequestMatcher;
 
     private final AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource = new WebAuthenticationDetailsSource();
     private final RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
@@ -69,8 +64,6 @@ public class OAuth2ImplicitGrantFilter extends OncePerRequestFilter {
         this.clientRegistrationRepository = clientRegistrationRepository;
         this.authorizedClientRepository = authorizedClientRepository;
         this.authenticationManager = authenticationManager;
-        this.authorizationRequestMatcher = new AntPathRequestMatcher(
-                authorizationRequestBaseUri + "/{" + REGISTRATION_ID_URI_VARIABLE_NAME + "}");
     }
 
     @Override

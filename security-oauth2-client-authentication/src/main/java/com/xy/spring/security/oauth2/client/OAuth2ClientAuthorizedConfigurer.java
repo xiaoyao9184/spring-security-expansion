@@ -108,11 +108,11 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
     }
 
     /**
-     * Returns the {@link OAuth2ClientAuthorizedConfigurer.AuthorizationEndpointConfig} for configuring the Authorization Server's Authorization Endpoint.
+     * Returns the {@link AuthorizationEndpointConfig} for configuring the Authorization Server's Authorization Endpoint.
      *
-     * @return the {@link OAuth2ClientAuthorizedConfigurer.AuthorizationEndpointConfig}
+     * @return the {@link AuthorizationEndpointConfig}
      */
-    public OAuth2ClientAuthorizedConfigurer.AuthorizationEndpointConfig authorizationEndpoint() {
+    public AuthorizationEndpointConfig authorizationEndpoint() {
         return this.authorizationEndpointConfig;
     }
 
@@ -120,10 +120,10 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
      * Configures the Authorization Server's Authorization Endpoint.
      *
      * @param authorizationEndpointCustomizer the {@link Customizer} to provide more options for
-     * the {@link OAuth2ClientAuthorizedConfigurer.AuthorizationEndpointConfig}
+     * the {@link AuthorizationEndpointConfig}
      * @return the {@link OAuth2ClientAuthorizedConfigurer} for further customizations
      */
-    public OAuth2ClientAuthorizedConfigurer<B> authorizationEndpoint(Customizer<OAuth2ClientAuthorizedConfigurer.AuthorizationEndpointConfig> authorizationEndpointCustomizer) {
+    public OAuth2ClientAuthorizedConfigurer<B> authorizationEndpoint(Customizer<AuthorizationEndpointConfig> authorizationEndpointCustomizer) {
         authorizationEndpointCustomizer.customize(this.authorizationEndpointConfig);
         return this;
     }
@@ -142,7 +142,7 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
          * Sets the base {@code URI} used for authorization requests.
          *
          * @param authorizationRequestBaseUri the base {@code URI} used for authorization requests
-         * @return the {@link OAuth2ClientAuthorizedConfigurer.AuthorizationEndpointConfig} for further configuration
+         * @return the {@link AuthorizationEndpointConfig} for further configuration
          */
         public AuthorizationEndpointConfig baseUri(String authorizationRequestBaseUri) {
             Assert.hasText(authorizationRequestBaseUri, "authorizationRequestBaseUri cannot be empty");
@@ -184,11 +184,11 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
     }
 
     /**
-     * Returns the {@link OAuth2ClientAuthorizedConfigurer.TokenEndpointConfig} for configuring the Authorization Server's Token Endpoint.
+     * Returns the {@link TokenEndpointConfig} for configuring the Authorization Server's Token Endpoint.
      *
-     * @return the {@link OAuth2ClientAuthorizedConfigurer.TokenEndpointConfig}
+     * @return the {@link TokenEndpointConfig}
      */
-    public OAuth2ClientAuthorizedConfigurer.TokenEndpointConfig tokenEndpoint() {
+    public TokenEndpointConfig tokenEndpoint() {
         return this.tokenEndpointConfig;
     }
 
@@ -196,11 +196,10 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
      * Configures the Authorization Server's Token Endpoint.
      *
      * @param tokenEndpointCustomizer the {@link Customizer} to provide more options for
-     * the {@link OAuth2ClientAuthorizedConfigurer.TokenEndpointConfig}
+     * the {@link TokenEndpointConfig}
      * @return the {@link OAuth2ClientAuthorizedConfigurer} for further customizations
-     * @throws Exception
      */
-    public OAuth2ClientAuthorizedConfigurer<B> tokenEndpoint(Customizer<OAuth2ClientAuthorizedConfigurer.TokenEndpointConfig> tokenEndpointCustomizer) {
+    public OAuth2ClientAuthorizedConfigurer<B> tokenEndpoint(Customizer<TokenEndpointConfig> tokenEndpointCustomizer) {
         tokenEndpointCustomizer.customize(this.tokenEndpointConfig);
         return this;
     }
@@ -219,9 +218,9 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
          * Sets the client used for requesting the access token credential from the Token Endpoint.
          *
          * @param passwordGrantAccessTokenResponseClient the client used for requesting the access token credential from the Token Endpoint
-         * @return the {@link OAuth2ClientAuthorizedConfigurer.TokenEndpointConfig} for further configuration
+         * @return the {@link TokenEndpointConfig} for further configuration
          */
-        public OAuth2ClientAuthorizedConfigurer.TokenEndpointConfig passwordGrantAccessTokenResponseClient(
+        public TokenEndpointConfig passwordGrantAccessTokenResponseClient(
                 OAuth2AccessTokenResponseClient<OAuth2PasswordGrantRequest> passwordGrantAccessTokenResponseClient) {
 
             Assert.notNull(accessTokenResponseClient, "passwordAccessTokenResponseClient cannot be null");
@@ -233,9 +232,9 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
          * Sets the client used for requesting the access token credential from the Token Endpoint.
          *
          * @param clientCredentialsGrantAccessTokenResponseClient the client used for requesting the access token credential from the Token Endpoint
-         * @return the {@link OAuth2ClientAuthorizedConfigurer.TokenEndpointConfig} for further configuration
+         * @return the {@link TokenEndpointConfig} for further configuration
          */
-        public OAuth2ClientAuthorizedConfigurer.TokenEndpointConfig clientCredentialsGrantAccessTokenResponseClient(
+        public TokenEndpointConfig clientCredentialsGrantAccessTokenResponseClient(
                 OAuth2AccessTokenResponseClient<OAuth2ClientCredentialsGrantRequest> clientCredentialsGrantAccessTokenResponseClient) {
 
             Assert.notNull(passwordAccessTokenResponseClient, "clientCredentialsGrantAccessTokenResponseClient cannot be null");
@@ -254,11 +253,11 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
     }
 
     /**
-     * Returns the {@link OAuth2ClientAuthorizedConfigurer.RedirectionEndpointConfig} for configuring the Client's Redirection Endpoint.
+     * Returns the {@link RedirectionEndpointConfig} for configuring the Client's Redirection Endpoint.
      *
-     * @return the {@link OAuth2ClientAuthorizedConfigurer.RedirectionEndpointConfig}
+     * @return the {@link RedirectionEndpointConfig}
      */
-    public OAuth2ClientAuthorizedConfigurer.RedirectionEndpointConfig redirectionEndpoint() {
+    public RedirectionEndpointConfig redirectionEndpoint() {
         return this.redirectionEndpointConfig;
     }
 
@@ -266,10 +265,10 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
      * Configures the Client's Redirection Endpoint.
      *
      * @param redirectionEndpointCustomizer the {@link Customizer} to provide more options for
-     * the {@link OAuth2ClientAuthorizedConfigurer.RedirectionEndpointConfig}
+     * the {@link RedirectionEndpointConfig}
      * @return the {@link OAuth2ClientAuthorizedConfigurer} for further customizations
      */
-    public OAuth2ClientAuthorizedConfigurer<B> redirectionEndpoint(Customizer<OAuth2ClientAuthorizedConfigurer.RedirectionEndpointConfig> redirectionEndpointCustomizer) {
+    public OAuth2ClientAuthorizedConfigurer<B> redirectionEndpoint(Customizer<RedirectionEndpointConfig> redirectionEndpointCustomizer) {
         redirectionEndpointCustomizer.customize(this.redirectionEndpointConfig);
         return this;
     }
@@ -287,9 +286,9 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
          * Sets the {@code URI} where the authorization response will be processed.
          *
          * @param authorizationResponseBaseUri the {@code URI} where the authorization response will be processed
-         * @return the {@link OAuth2ClientAuthorizedConfigurer.RedirectionEndpointConfig} for further configuration
+         * @return the {@link RedirectionEndpointConfig} for further configuration
          */
-        public OAuth2ClientAuthorizedConfigurer.RedirectionEndpointConfig baseUri(String authorizationResponseBaseUri) {
+        public RedirectionEndpointConfig baseUri(String authorizationResponseBaseUri) {
             Assert.hasText(authorizationResponseBaseUri, "authorizationResponseBaseUri cannot be empty");
             this.authorizationResponseBaseUri = authorizationResponseBaseUri;
             return this;
@@ -306,11 +305,11 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
     }
 
     /**
-     * Returns the {@link OAuth2ClientAuthorizedConfigurer.UserInfoEndpointConfig} for configuring the Authorization Server's UserInfo Endpoint.
+     * Returns the {@link UserInfoEndpointConfig} for configuring the Authorization Server's UserInfo Endpoint.
      *
-     * @return the {@link OAuth2ClientAuthorizedConfigurer.UserInfoEndpointConfig}
+     * @return the {@link UserInfoEndpointConfig}
      */
-    public OAuth2ClientAuthorizedConfigurer.UserInfoEndpointConfig userInfoEndpoint() {
+    public UserInfoEndpointConfig userInfoEndpoint() {
         return this.userInfoEndpointConfig;
     }
 
@@ -318,10 +317,10 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
      * Configures the Authorization Server's UserInfo Endpoint.
      *
      * @param userInfoEndpointCustomizer the {@link Customizer} to provide more options for
-     * the {@link OAuth2ClientAuthorizedConfigurer.UserInfoEndpointConfig}
+     * the {@link UserInfoEndpointConfig}
      * @return the {@link OAuth2ClientAuthorizedConfigurer} for further customizations
      */
-    public OAuth2ClientAuthorizedConfigurer<B> userInfoEndpoint(Customizer<OAuth2ClientAuthorizedConfigurer.UserInfoEndpointConfig> userInfoEndpointCustomizer) {
+    public OAuth2ClientAuthorizedConfigurer<B> userInfoEndpoint(Customizer<UserInfoEndpointConfig> userInfoEndpointCustomizer) {
         userInfoEndpointCustomizer.customize(this.userInfoEndpointConfig);
         return this;
     }
@@ -340,9 +339,9 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
          * Sets the OAuth 2.0 service used for obtaining the user attributes of the End-User from the UserInfo Endpoint.
          *
          * @param userService the OAuth 2.0 service used for obtaining the user attributes of the End-User from the UserInfo Endpoint
-         * @return the {@link OAuth2ClientAuthorizedConfigurer.UserInfoEndpointConfig} for further configuration
+         * @return the {@link UserInfoEndpointConfig} for further configuration
          */
-        public OAuth2ClientAuthorizedConfigurer.UserInfoEndpointConfig userService(OAuth2UserService<OAuth2UserRequest, OAuth2User> userService) {
+        public UserInfoEndpointConfig userService(OAuth2UserService<OAuth2UserRequest, OAuth2User> userService) {
             Assert.notNull(userService, "userService cannot be null");
             this.userService = userService;
             return this;
@@ -354,9 +353,9 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
          *
          * @param customUserType a custom {@link OAuth2User} type
          * @param clientRegistrationId the client registration identifier
-         * @return the {@link OAuth2ClientAuthorizedConfigurer.UserInfoEndpointConfig} for further configuration
+         * @return the {@link UserInfoEndpointConfig} for further configuration
          */
-        public OAuth2ClientAuthorizedConfigurer.UserInfoEndpointConfig customUserType(Class<? extends OAuth2User> customUserType, String clientRegistrationId) {
+        public UserInfoEndpointConfig customUserType(Class<? extends OAuth2User> customUserType, String clientRegistrationId) {
             Assert.notNull(customUserType, "customUserType cannot be null");
             Assert.hasText(clientRegistrationId, "clientRegistrationId cannot be empty");
             this.customUserTypes.put(clientRegistrationId, customUserType);
@@ -367,9 +366,9 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
          * Sets the {@link GrantedAuthoritiesMapper} used for mapping {@link OAuth2User#getAuthorities()}.
          *
          * @param userAuthoritiesMapper the {@link GrantedAuthoritiesMapper} used for mapping the user's authorities
-         * @return the {@link OAuth2ClientAuthorizedConfigurer.UserInfoEndpointConfig} for further configuration
+         * @return the {@link UserInfoEndpointConfig} for further configuration
          */
-        public OAuth2ClientAuthorizedConfigurer.UserInfoEndpointConfig userAuthoritiesMapper(GrantedAuthoritiesMapper userAuthoritiesMapper) {
+        public UserInfoEndpointConfig userAuthoritiesMapper(GrantedAuthoritiesMapper userAuthoritiesMapper) {
             Assert.notNull(userAuthoritiesMapper, "userAuthoritiesMapper cannot be null");
             OAuth2ClientAuthorizedConfigurer.this.getBuilder().setSharedObject(GrantedAuthoritiesMapper.class, userAuthoritiesMapper);
             return this;

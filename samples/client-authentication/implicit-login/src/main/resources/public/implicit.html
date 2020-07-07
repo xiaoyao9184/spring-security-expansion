@@ -1,0 +1,55 @@
+<html lang="en"><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Please sign in</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <link href="https://getbootstrap.com/docs/4.0/examples/signin/signin.css" rel="stylesheet" crossorigin="anonymous">
+</head>
+<body>
+<div class="container">
+    <form class="form-signin" method="post" action="/login/oauth2/client/uaa-implicit">
+        <h2 class="form-signin-heading">Sign in with client uaa-implicit</h2>
+        <p>
+            <label for="token_type" class="sr-only">token_type</label>
+            <input type="text" id="token_type" name="token_type" class="form-control" placeholder="token type" required="" autofocus="">
+        </p>
+        <p>
+            <label for="access_token" class="sr-only">access token</label>
+            <input type="text" id="access_token" name="access_token" class="form-control" placeholder="access token" required="" autofocus="">
+        </p>
+        <p>
+            <label for="expires_in" class="sr-only">expires in</label>
+            <input type="text" id="expires_in" name="expires_in" class="form-control" placeholder="expires in" required="" autofocus="">
+        </p>
+        <p>
+            <label for="scope" class="sr-only">scope</label>
+            <input type="text" id="scope" name="scope" class="form-control" placeholder="scope" required="">
+        </p>
+        <p>
+            <label for="jti" class="sr-only">jti</label>
+            <input type="text" id="jti" name="jti" class="form-control" placeholder="jti" required="">
+        </p>
+        <p>
+            <input type="hidden" id="registration_id" name="registration_id" class="form-control" placeholder="registration_id" value="uaa-implicit">
+        </p>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+    </form>
+</div>
+<script type="application/javascript">
+    var hash = window.location.hash;
+    var vars = hash.substring(1).split('&');
+    var key = {};
+    for (i=0; i<vars.length; i++) {
+        var tmp = vars[i].split('=');
+        key[tmp[0]] = tmp[1];
+    }
+    document.getElementById('token_type').value = key.token_type;
+    document.getElementById('access_token').value = key.access_token;
+    document.getElementById('expires_in').value = key.expires_in;
+    document.getElementById('scope').value = key.scope.replace(/%20/g,' ');
+    document.getElementById('jti').value = key.jti;
+</script>
+</body>
+</html>

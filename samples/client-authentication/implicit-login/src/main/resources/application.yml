@@ -1,0 +1,44 @@
+debug: true
+
+server:
+  port: 8080
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          uaa-implicit:
+            provider: uaa
+            client-id: spring-security-expansion-sample
+            client-secret: sample
+            authorization-grant-type: implicit
+            redirect-uri: "{baseUrl}/implicit.html"
+#          uaa-implicit-authorization:
+#            provider: uaa
+#            client-id: spring-security-expansion-sample
+#            client-secret: sample
+#            authorization-grant-type: implicit
+#            redirect-uri: "{baseUrl}/login/oauth2/client/{registrationId}"
+          uaa-authorization-code:
+            provider: uaa
+            client-id: spring-security-expansion-sample
+            client-secret: sample
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/client/{registrationId}"
+          uaa-sso:
+            provider: uaa
+            client-id: spring-security-expansion-sample
+            client-secret: sample
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/"
+        provider:
+          uaa:
+            authorization-uri: http://ds1019plus:16666/oauth/authorize
+            token-uri: http://ds1019plus:16666/oauth/token
+            user-info-uri: http://ds1019plus:16666/userinfo
+            user-name-attribute: user_name
+
+
+logging:
+  level:
+    org.springframework.security: DEBUG

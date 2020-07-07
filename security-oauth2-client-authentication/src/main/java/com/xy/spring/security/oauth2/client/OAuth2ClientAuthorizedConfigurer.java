@@ -12,16 +12,19 @@ import org.springframework.security.config.annotation.web.configurers.AbstractAu
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.endpoint.*;
-import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.userinfo.*;
-import org.springframework.security.oauth2.client.web.*;
-import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
-import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.client.web.AuthenticatedPrincipalOAuth2AuthorizedClientRepository;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationCodeGrantFilter;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.security.web.authentication.*;
+import org.springframework.security.web.authentication.AuthenticationEntryPointFailureHandler;
+import org.springframework.security.web.authentication.DelegatingAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.*;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
@@ -418,14 +421,20 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
 
 //        this.failureHandler(new SimpleUrlAuthenticationFailureHandler());
 
+
+        //support implicit grant authentication by AuthenticationProvider
+        OAuth2ImplicitAuthenticationProvider implicitAuthenticationProvider =
+                new OAuth2ImplicitAuthenticationProvider();
+        http.authenticationProvider(postProcess(implicitAuthenticationProvider));
+
         //support password grant authentication by AuthenticationProvider
-        OAuth2AccessTokenResponseClient<OAuth2PasswordGrantRequest> accessTokenResponseClient =
+        OAuth2AccessTokenResponseClient<OAuth2PasswordGrantRequest> passwordAccessTokenResponseClient =
                 this.tokenEndpointConfig.passwordAccessTokenResponseClient;
-        if (accessTokenResponseClient == null) {
-            accessTokenResponseClient = new DefaultPasswordTokenResponseClient();
+        if (passwordAccessTokenResponseClient == null) {
+            passwordAccessTokenResponseClient = new DefaultPasswordTokenResponseClient();
         }
         OAuth2PasswordAuthenticationProvider passwordAuthenticationProvider =
-                new OAuth2PasswordAuthenticationProvider(accessTokenResponseClient);
+                new OAuth2PasswordAuthenticationProvider(passwordAccessTokenResponseClient);
         http.authenticationProvider(postProcess(passwordAuthenticationProvider));
 
         //support client-credentials grant authentication by AuthenticationProvider
@@ -441,9 +450,13 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
 
     @Override
     public void configure(B http) throws Exception {
+        //support implicit grant request
+        OAuth2ImplicitGrantFilter implicitGrantFilter = createImplicitGrantFilter(http);
+        http.addFilterBefore(postProcess(implicitGrantFilter),OAuth2ClientAuthorizedAuthenticationFilter.class);
+
         //support password grant request
         OAuth2PasswordGrantFilter passwordGrantFilter = createPasswordGrantFilter(http);
-        http.addFilterBefore(postProcess(passwordGrantFilter),OAuth2AuthorizationRequestRedirectFilter.class);
+        http.addFilterBefore(postProcess(passwordGrantFilter), OAuth2AuthorizationRequestRedirectFilter.class);
 
         //support client-credentials grant request
         OAuth2ClientCredentialsGrantFilter clientCredentialsGrantFilter = createClientCredentialsGrantFilter(http);
@@ -480,6 +493,27 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
                 OAuth2ClientAuthorizedAuthenticationFilter.class, OAuth2AuthorizationCodeGrantFilter.class);
     }
 
+
+    private OAuth2ImplicitGrantFilter createImplicitGrantFilter(B http) {
+        AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
+        OAuth2ImplicitGrantFilter implicitGrantFilter;
+
+        //TODO support config DefaultOAuth2AuthorizationRequestResolver
+
+        //config uri without resolver
+        String authorizationRequestBaseUri = this.authorizationEndpointConfig.authorizationRequestBaseUri;
+        if (authorizationRequestBaseUri == null) {
+            authorizationRequestBaseUri = OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI;
+        }
+
+        implicitGrantFilter = new OAuth2ImplicitGrantFilter(
+                OAuth2ClientAuthorizedConfigurerUtils.getClientRegistrationRepository(http),
+                OAuth2ClientAuthorizedConfigurerUtils.getAuthorizedClientRepository(http),
+                authenticationManager,
+                authorizationRequestBaseUri);
+
+        return implicitGrantFilter;
+    }
 
     private OAuth2PasswordGrantFilter createPasswordGrantFilter(B http) {
         AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
@@ -541,6 +575,7 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
 
         return passwordLoginPageGeneratingFilter;
     }
+
 
     private GrantedAuthoritiesMapper getGrantedAuthoritiesMapper() {
         GrantedAuthoritiesMapper grantedAuthoritiesMapper =

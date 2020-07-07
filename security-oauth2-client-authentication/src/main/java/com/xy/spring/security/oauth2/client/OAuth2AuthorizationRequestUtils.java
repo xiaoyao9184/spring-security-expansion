@@ -1,5 +1,8 @@
 package com.xy.spring.security.oauth2.client;
 
+import org.springframework.context.ApplicationContext;
+import org.springframework.security.config.annotation.web.HttpSecurityBuilder;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -37,4 +40,25 @@ public class OAuth2AuthorizationRequestUtils {
     public static String removePassword(MultiValueMap<String, String> params) {
         return params.remove(OAuth2ParameterNames.PASSWORD).get(0);
     }
+
+    public static boolean isTokenRequest(MultiValueMap<String, String> request) {
+        return StringUtils.hasText(request.getFirst(OAuth2ParameterNames.ACCESS_TOKEN));
+    }
+
+    public static String removeAccessToken(MultiValueMap<String, String> params) {
+        return params.remove(OAuth2ParameterNames.ACCESS_TOKEN).get(0);
+    }
+
+    public static String removeExpiresIn(MultiValueMap<String, String> params) {
+        return params.remove(OAuth2ParameterNames.EXPIRES_IN).get(0);
+    }
+
+    public static String removeScope(MultiValueMap<String, String> params) {
+        return params.remove(OAuth2ParameterNames.SCOPE).get(0);
+    }
+
+    public static String removeTokenType(MultiValueMap<String, String> params) {
+        return params.remove(OAuth2ParameterNames.TOKEN_TYPE).get(0);
+    }
+
 }

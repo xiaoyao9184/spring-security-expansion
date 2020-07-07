@@ -8,6 +8,7 @@ include 'sample-password-auth-server'
 include 'sample-password-gateway-client'
 include 'sample-password-login'
 include 'sample-client-login'
+include 'sample-implicit-login'
 
 rootProject.name = "${projectName}"
 project(":sample-mock-auth-server").projectDir = new File("samples/mock-grant/auth-server")
@@ -16,3 +17,4 @@ project(":sample-password-auth-server").projectDir = new File("samples/client-pa
 project(":sample-password-gateway-client").projectDir = new File("samples/client-password/gateway-client")
 project(":sample-password-login").projectDir = new File("samples/client-authentication/password-login")
 project(":sample-client-login").projectDir = new File("samples/client-authentication/client-login")
+project(":sample-implicit-login").projectDir = new File("samples/client-authentication/implicit-login")

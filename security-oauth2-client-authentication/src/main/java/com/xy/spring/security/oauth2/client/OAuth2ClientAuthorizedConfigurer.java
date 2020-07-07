@@ -133,6 +133,7 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
      */
     public class AuthorizationEndpointConfig {
         private String authorizationRequestBaseUri;
+        private String clientUserAuthority;
 
         private AuthorizationEndpointConfig() {
         }
@@ -143,9 +144,32 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
          * @param authorizationRequestBaseUri the base {@code URI} used for authorization requests
          * @return the {@link OAuth2ClientAuthorizedConfigurer.AuthorizationEndpointConfig} for further configuration
          */
-        public OAuth2ClientAuthorizedConfigurer.AuthorizationEndpointConfig baseUri(String authorizationRequestBaseUri) {
+        public AuthorizationEndpointConfig baseUri(String authorizationRequestBaseUri) {
             Assert.hasText(authorizationRequestBaseUri, "authorizationRequestBaseUri cannot be empty");
             this.authorizationRequestBaseUri = authorizationRequestBaseUri;
+            return this;
+        }
+
+        /**
+         * Sets the authority for client credentials authorization requests.
+         * allow anonymous user, danger
+         *
+         * @return the {@link AuthorizationEndpointConfig} for further configuration
+         */
+        public AuthorizationEndpointConfig clientAnonymous() {
+            this.clientUserAuthority = OAuth2ClientCredentialsGrantFilter.ANONYMOUS_USER_AUTHORITY;
+            return this;
+        }
+
+        /**
+         * Sets the authority for client credentials authorization requests.
+         *
+         * @param authorizationRequestAuthority the authority for client credentials authorization requests
+         * @return the {@link AuthorizationEndpointConfig} for further configuration
+         */
+        public AuthorizationEndpointConfig clientAuthority(String authorizationRequestAuthority) {
+            Assert.hasText(authorizationRequestAuthority, "authorizationRequestAuthority cannot be empty");
+            this.clientUserAuthority = authorizationRequestAuthority;
             return this;
         }
 
@@ -548,11 +572,16 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
             authorizationRequestBaseUri = OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI;
         }
 
+        ResolvableType typeEnvironment = ResolvableType.forType(Environment.class);
+        Environment environment = getBeanOrNull(typeEnvironment);
+
         clientCredentialsGrantFilter = new OAuth2ClientCredentialsGrantFilter(
                 OAuth2ClientAuthorizedConfigurerUtils.getClientRegistrationRepository(http),
                 OAuth2ClientAuthorizedConfigurerUtils.getAuthorizedClientRepository(http),
                 authenticationManager,
-                authorizationRequestBaseUri);
+                authorizationRequestBaseUri,
+                this.authorizationEndpointConfig.clientUserAuthority,
+                environment);
 
         return clientCredentialsGrantFilter;
     }

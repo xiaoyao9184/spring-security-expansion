@@ -4,6 +4,10 @@ server:
   port: 8080
 spring:
   security:
+    user:
+      roles: DEV
+      name: dev
+      password: dev
     oauth2:
       client:
         registration:

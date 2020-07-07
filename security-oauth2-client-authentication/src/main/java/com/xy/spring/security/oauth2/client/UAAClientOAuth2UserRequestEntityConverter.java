@@ -15,7 +15,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 import java.util.Collections;
 
-import static com.xy.spring.security.oauth2.client.UAAClientOAuth2UserService.getClientInfoUri;
+import static com.xy.spring.security.oauth2.client.EnvironmentPropertyUtils.getClientInfoUri;
 
 /**
  * Created by xiaoyao9184 on 2020/7/3.

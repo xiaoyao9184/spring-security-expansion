@@ -5,6 +5,7 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,6 +20,13 @@ public class OAuth2ResourceServerController {
         return new HashMap<String, Object>(){{
             put("name", token.getPrincipal().getName());
             put("client-registration-id",token.getAuthorizedClientRegistrationId());
+        }};
+    }
+
+    @RequestMapping("/user_basic")
+    public Map<String, Object> userBase(@AuthenticationPrincipal Principal principal) {
+        return new HashMap<String, Object>(){{
+            put("name", principal.getName());
         }};
     }
 }

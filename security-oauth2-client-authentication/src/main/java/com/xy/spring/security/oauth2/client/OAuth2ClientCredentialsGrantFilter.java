@@ -1,5 +1,6 @@
 package com.xy.spring.security.oauth2.client;
 
+import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -30,12 +31,16 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Created by xiaoyao9184 on 2020/7/3.
  */
 public class OAuth2ClientCredentialsGrantFilter extends OncePerRequestFilter {
+    public static final String ANONYMOUS_USER_AUTHORITY = "ROLE_ANONYMOUS";
+    private static final String DEFAULT_USER_AUTHORITY = "ROLE_DEV";
     private static final String REGISTRATION_ID_URI_VARIABLE_NAME = "registrationId";
     private static final char PATH_DELIMITER = '/';
     private final ClientRegistrationRepository clientRegistrationRepository;
@@ -45,6 +50,9 @@ public class OAuth2ClientCredentialsGrantFilter extends OncePerRequestFilter {
 
     private final AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource = new WebAuthenticationDetailsSource();
     private final RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
+    private final String needUserAuthority;
+
+    private Environment environment;
 
     /**
      * Constructs an {@code OAuth2ClientCredentialsGrantFilter} using the provided parameters.
@@ -68,6 +76,38 @@ public class OAuth2ClientCredentialsGrantFilter extends OncePerRequestFilter {
         this.authenticationManager = authenticationManager;
         this.authorizationRequestMatcher = new AntPathRequestMatcher(
                 authorizationRequestBaseUri + "/{" + REGISTRATION_ID_URI_VARIABLE_NAME + "}");
+        this.needUserAuthority = DEFAULT_USER_AUTHORITY;
+    }
+
+    /**
+     * Constructs an {@code OAuth2ClientCredentialsGrantFilter} using the provided parameters.
+     *
+     * @param clientRegistrationRepository the repository of client registrations
+     * @param authorizedClientRepository the authorized client repository
+     * @param authenticationManager the authentication manager
+     * @param authorizationRequestBaseUri authorization request base URI
+     * @param needUserAuthority user authority
+     */
+    public OAuth2ClientCredentialsGrantFilter(
+            ClientRegistrationRepository clientRegistrationRepository,
+            OAuth2AuthorizedClientRepository authorizedClientRepository,
+            AuthenticationManager authenticationManager,
+            String authorizationRequestBaseUri,
+            String needUserAuthority,
+            Environment environment) {
+        Assert.notNull(clientRegistrationRepository, "clientRegistrationRepository cannot be null");
+        Assert.notNull(authorizedClientRepository, "authorizedClientRepository cannot be null");
+        Assert.notNull(authenticationManager, "authenticationManager cannot be null");
+        Assert.notNull(authorizationRequestBaseUri, "authorizationRequestBaseUri cannot be null");
+        Assert.notNull(needUserAuthority, "needUserAuthority cannot be null");
+        Assert.notNull(environment, "environment cannot be null");
+        this.clientRegistrationRepository = clientRegistrationRepository;
+        this.authorizedClientRepository = authorizedClientRepository;
+        this.authenticationManager = authenticationManager;
+        this.authorizationRequestMatcher = new AntPathRequestMatcher(
+                authorizationRequestBaseUri + "/{" + REGISTRATION_ID_URI_VARIABLE_NAME + "}");
+        this.needUserAuthority = needUserAuthority;
+        this.environment = environment;
     }
 
     @Override
@@ -87,7 +127,25 @@ public class OAuth2ClientCredentialsGrantFilter extends OncePerRequestFilter {
                 .map(this::resolveRegistrationId)
                 .map(this.clientRegistrationRepository::findByRegistrationId)
                 .filter(cr -> AuthorizationGrantType.CLIENT_CREDENTIALS.equals(cr.getAuthorizationGrantType()))
+                .filter(this::isPermit)
                 .isPresent();
+    }
+
+    private boolean isPermit(ClientRegistration clientRegistration) {
+        String clientRegistrationUserAuthority = EnvironmentPropertyUtils.getClientUserAuthority(this.environment, clientRegistration);
+        String userAuthority = Stream.of(clientRegistrationUserAuthority, this.needUserAuthority)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(ANONYMOUS_USER_AUTHORITY);
+
+        Authentication currentAuthentication = SecurityContextHolder.getContext().getAuthentication();
+        if(currentAuthentication == null){
+            return ANONYMOUS_USER_AUTHORITY.equals(userAuthority);
+        }else{
+            return currentAuthentication.getAuthorities()
+                    .stream()
+                    .anyMatch(a -> a.getAuthority().equals(userAuthority));
+        }
     }
 
     private String resolveRegistrationId(HttpServletRequest request) {

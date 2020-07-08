@@ -2,7 +2,6 @@ group = 'com.github.xiaoyao9184'
 version = "0.1-SNAPSHOT"
 
 apply plugin: 'java'
-apply plugin: 'maven'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'propdeps'
 apply plugin: "io.spring.dependency-management"

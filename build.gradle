@@ -203,6 +203,8 @@ project(':security-oauth2-client-authentication') {
     apply plugin: 'java'
     apply plugin: 'war'
     apply plugin: 'com.github.ksoichiro.build.info'
+    apply plugin: 'maven'
+    apply plugin: 'maven-publish'
 
     group = 'com.github.xiaoyao9184'
     version = "0.1-SNAPSHOT"

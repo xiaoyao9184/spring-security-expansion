@@ -41,8 +41,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         //noinspection unchecked
         http.apply(new OAuth2ClientAuthorizedConfigurer()
                 .authorizationEndpoint()
-                .clientAnonymous()
-                .and());
+                    .clientAnonymous()
+                    .and()
+                .userInfoEndpoint()
+                    .useUAAClientInfo()
+                    .and());
         http.oauth2Client();
         http.oauth2Login();
 

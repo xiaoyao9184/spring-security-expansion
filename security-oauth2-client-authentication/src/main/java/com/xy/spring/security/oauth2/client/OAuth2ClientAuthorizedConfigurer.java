@@ -331,6 +331,7 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
     public class UserInfoEndpointConfig {
         private OAuth2UserService<OAuth2UserRequest, OAuth2User> userService;
         private Map<String, Class<? extends OAuth2User>> customUserTypes = new HashMap<>();
+        private boolean useUAAClientInfo = false;
 
         private UserInfoEndpointConfig() {
         }
@@ -371,6 +372,16 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
         public UserInfoEndpointConfig userAuthoritiesMapper(GrantedAuthoritiesMapper userAuthoritiesMapper) {
             Assert.notNull(userAuthoritiesMapper, "userAuthoritiesMapper cannot be null");
             OAuth2ClientAuthorizedConfigurer.this.getBuilder().setSharedObject(GrantedAuthoritiesMapper.class, userAuthoritiesMapper);
+            return this;
+        }
+
+        /**
+         * Enable UAA Client Info for client-credentials grant load OAuth2 user
+         *
+         * @return the {@link UserInfoEndpointConfig} for further configuration
+         */
+        public UserInfoEndpointConfig useUAAClientInfo() {
+            this.useUAAClientInfo = true;
             return this;
         }
 
@@ -636,14 +647,21 @@ public class OAuth2ClientAuthorizedConfigurer<B extends HttpSecurityBuilder<B>> 
             if (!this.userInfoEndpointConfig.customUserTypes.isEmpty()) {
                 userServices.add(new CustomUserTypesOAuth2UserService(this.userInfoEndpointConfig.customUserTypes));
             }
-            ResolvableType typeEnvironment = ResolvableType.forType(Environment.class);
-            Environment environment = getBeanOrNull(typeEnvironment);
-            UAAClientOAuth2UserService clientOAuth2UserService = new UAAClientOAuth2UserService(environment);
-            userServices.add(clientOAuth2UserService);
+
+            if(this.userInfoEndpointConfig.useUAAClientInfo) {
+                ResolvableType typeEnvironment = ResolvableType.forType(Environment.class);
+                Environment environment = getBeanOrNull(typeEnvironment);
+                UAAClientOAuth2UserService clientOAuth2UserService = new UAAClientOAuth2UserService(environment);
+                userServices.add(clientOAuth2UserService);
+            }
 
             DefaultOAuth2UserService oauth2UserService = new DefaultOAuth2UserService();
             userServices.add(oauth2UserService);
-            return new DelegatingOAuth2UserService<>(userServices);
+            if(userServices.size() == 1){
+                return userServices.get(0);
+            } else {
+                return new DelegatingOAuth2UserService<>(userServices);
+            }
         }
 
         return bean;

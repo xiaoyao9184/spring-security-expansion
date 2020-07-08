@@ -201,7 +201,7 @@ project(':security-oauth2-client-authentication') {
     }
 
     apply plugin: 'java'
-    apply plugin: 'war'
+    apply plugin: 'propdeps'
     apply plugin: 'com.github.ksoichiro.build.info'
     apply plugin: 'maven'
     apply plugin: 'maven-publish'
@@ -219,7 +219,7 @@ project(':security-oauth2-client-authentication') {
         compile "org.springframework.boot:spring-boot-starter-security:${springBootVersion}"
         compile "org.springframework.boot:spring-boot-starter-oauth2-client:${springBootVersion}"
         //Servlet
-        providedCompile group: 'javax.servlet', name: 'javax.servlet-api', version: '4.0.1'
+        provided group: 'javax.servlet', name: 'javax.servlet-api', version: '4.0.1'
 
         //Test
         testCompile group: 'junit', name: 'junit', version: '4.12'

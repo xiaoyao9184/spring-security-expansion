@@ -99,14 +99,13 @@ public class OAuth2ClientCredentialsGrantFilter extends OncePerRequestFilter {
         Assert.notNull(authorizedClientRepository, "authorizedClientRepository cannot be null");
         Assert.notNull(authenticationManager, "authenticationManager cannot be null");
         Assert.notNull(authorizationRequestBaseUri, "authorizationRequestBaseUri cannot be null");
-        Assert.notNull(needUserAuthority, "needUserAuthority cannot be null");
         Assert.notNull(environment, "environment cannot be null");
         this.clientRegistrationRepository = clientRegistrationRepository;
         this.authorizedClientRepository = authorizedClientRepository;
         this.authenticationManager = authenticationManager;
         this.authorizationRequestMatcher = new AntPathRequestMatcher(
                 authorizationRequestBaseUri + "/{" + REGISTRATION_ID_URI_VARIABLE_NAME + "}");
-        this.needUserAuthority = needUserAuthority;
+        this.needUserAuthority = needUserAuthority == null ? DEFAULT_USER_AUTHORITY : needUserAuthority;
         this.environment = environment;
     }
 
